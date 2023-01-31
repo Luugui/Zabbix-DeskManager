@@ -1,8 +1,11 @@
-import requests, json, argparse, logging
+import requests, json, logging, os, sys
 
 URL = "https://api.desk.ms/"
 KEY_OPERADOR = ""
 KEY_AMBIENTE = ""
+FUNC = sys.argv[1]
+ZBX_TRIGGER = sys.argv[2]
+DESC = sys.argv[3]
 
 
 logging.basicConfig(
@@ -11,13 +14,6 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
-
-
-parser = argparse.ArgumentParser(description="integração Zabbix X Desk manager")
-parser.add_argument("-d", "--descricao", help="Descrição do alerta")
-parser.add_argument("-t", "--ticket", help="Numero do chamado a ser finalizado")
-args = vars(parser.parse_args())
-
 
 
 def get_token(PublicKey, Autorization):
@@ -40,7 +36,7 @@ def get_token(PublicKey, Autorization):
 
 def abrir_chamado(Description):
 
-    token = et_token(KEY_AMBIENTE,KEY_OPERADOR)
+    token = get_token(KEY_AMBIENTE,KEY_OPERADOR)
 
     payload = {
         "TChamado": {
@@ -86,23 +82,15 @@ def fechar_chamado(chave):
 
 def main():
 
-    if args['descricao'] != None and args['ticket'] == None:
-        try:
-            tck = abrir_chamado(args['descricao'])
-            logging.info(f"Chamado {tck} aberto com sucesso!")
-        except:
-            logging.error("Erro na abertura de chamado", exec_info=True)
-    elif args['descricao'] != None and args['ticket'] != None:
-        logging.error("Impossível usar os dois argumentos ao mesmo tempo. Use apenas o '-d' ou '-t'")
-    elif args['descricao'] == None and args['ticket'] != None:
-        try:
-            fechar_chamado(args['ticket'])
-            logging.info(f"Chamado {args['ticket']} finalizado com sucesso!")
-        except:
-            logging.error("Erro no fechamento do chamado", exec_info=True)
+    if FUNC == "abrir":
+        with open(f"Alertas\{ZBX_TRIGGER}.txt",'w') as file:
+            file.write(abrir_chamado(DESC))
+    elif FUNC == "fechar":
+        with open(f"Alertas\{ZBX_TRIGGER}.txt",'r') as file:
+            tid = file.read()
+            fechar_chamado(tid)
     else:
-        logging.error("É necessário usar algum dos parametros para abrir ou fechar um chamado.")
-        
+        logging.ERROR("Função desconhecida")
 
 if __name__ == '__main__':
     main()
