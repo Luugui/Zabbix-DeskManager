@@ -84,13 +84,16 @@ def main():
 
     if FUNC == "abrir":
         with open(f"Alertas\{ZBX_TRIGGER}.txt",'w') as file:
-            file.write(abrir_chamado(DESC))
+            tck = abrir_chamado(DESC)
+            file.write(tck)
+            logging.info(f"Chamado {tck} aberto com sucesso!")
     elif FUNC == "fechar":
         with open(f"Alertas\{ZBX_TRIGGER}.txt",'r') as file:
             tid = file.read()
             fechar_chamado(tid)
+            logging.info(f"Chamado {tid} fechado com sucesso!")
     else:
-        logging.ERROR("Função desconhecida")
+        logging.ERROR("Função desconhecida", exec_info=True)
 
 if __name__ == '__main__':
     main()
